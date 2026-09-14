@@ -1,8 +1,8 @@
 from pathlib import Path
 import fileinput
-log_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\NASA_access_log_Aug95_small_test"
+log_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\NASA_access_log_Aug95_small_copy"
 
-for line in fileinput.input(files = log_path):
+for line in fileinput.input(files = log_path, inplace = True):
     line_list = line.split(" ")
     line_space = ""
 
@@ -29,5 +29,3 @@ for line in fileinput.input(files = log_path):
 
     space_pos = len(line_space) - 2
     line = line_space[:space_pos]
-
-    print(line)
