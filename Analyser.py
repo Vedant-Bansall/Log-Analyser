@@ -1,10 +1,11 @@
-from pathlib import Path
 import fileinput
 import sqlite3
 import re
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Get Log Path
-log_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\NASA_access_log_Aug95_small_test"
+log_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\NASA_access_log_Aug95"
 
 # SQL Database
 db_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\LogData.db"
@@ -64,3 +65,18 @@ for line in fileinput.input(files = log_path):
         print(fileinput.lineno())
 
 db.commit()
+
+data_frame = pd.read_sql_query("SELECT * FROM logs", db)
+
+# Time Format: DD/MMM/YYYY:HH:MM:SS
+format = "%d/%b/%Y:%H:%M:%S %z"
+time_stamp_column = pd.to_datetime(data_frame["timestamp"], format=format)
+
+hours = time_stamp_column.dt.hour
+
+hours_group  = hours.groupby(hours)
+hours_group.size().plot(kind="bar")
+plt.xlabel("Hour of day")
+plt.ylabel("Requests")
+plt.title("Requests per hour")
+plt.show()

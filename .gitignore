@@ -1,0 +1,6 @@
+.venv/
+LogData.db
+__pycache__/
+*.pyc
+NASA_access_log_Aug95
+NASA_access_log_Aug95_small
