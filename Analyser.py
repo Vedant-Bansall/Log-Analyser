@@ -14,32 +14,6 @@ db_cursor = db.cursor()
 db_cursor.execute('CREATE TABLE IF NOT EXISTS logs (host TEXT, timestamp TEXT, request TEXT, reply_code TEXT, reply_bytes TEXT)')
 
 for line in fileinput.input(files = log_path):
-    # Previous Seperation Method... It didnt work due to varying types of logs
-    '''line_list = line.split(" ")
-
-    # Delete 1 and 2 ("-" and "-")
-    line_list.pop(1)
-    line_list.pop(1)
-
-    # Conatenate 3 and 4 (The new 1 and 2) with a space - becoming 1, strip []
-    concatenate = line_list[1] + " " + line_list[2]
-    line_list.pop(1)
-    line_list.pop(1)
-    concatenate = concatenate.lstrip("[")
-    concatenate = concatenate.rstrip("]")
-    line_list.insert(1, concatenate)
-
-    # Conatenate 5, 6 and 7 (The new 2, 3 and 4) with spaces in between, becoming 2
-    concatenate = line_list[2] + " " + line_list[3] + " " + line_list[4]
-    line_list.pop(2)
-    line_list.pop(2)
-    line_list.pop(2)
-    line_list.insert(2, concatenate)
-    
-    # Leave 8 and 9 (3 and 4) as is
-    '''
-
-    # New Seperation Method (Regex)
     try:
         host = re.match(r"(\S+)", line)
         host = host.group(1)
@@ -63,20 +37,31 @@ for line in fileinput.input(files = log_path):
 
     except:
         print(fileinput.lineno())
+        break
 
 db.commit()
 
 data_frame = pd.read_sql_query("SELECT * FROM logs", db)
 
+# Timestamp Graphs
 # Time Format: DD/MMM/YYYY:HH:MM:SS
 format = "%d/%b/%Y:%H:%M:%S %z"
 time_stamp_column = pd.to_datetime(data_frame["timestamp"], format=format)
 
+# Graph 1
 hours = time_stamp_column.dt.hour
-
 hours_group  = hours.groupby(hours)
 hours_group.size().plot(kind="bar")
 plt.xlabel("Hour of day")
 plt.ylabel("Requests")
 plt.title("Requests per hour")
+plt.show()
+
+# Graph 2
+hourly_buckets = time_stamp_column.dt.floor('h')
+hourly_buckets_group = hourly_buckets.groupby(hourly_buckets)
+hourly_buckets_group.size().plot(kind="line")
+plt.xlabel("Month")
+plt.ylabel("Requests")
+plt.title("Requests in a month")
 plt.show()
