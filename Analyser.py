@@ -65,3 +65,28 @@ plt.xlabel("Month")
 plt.ylabel("Requests")
 plt.title("Requests in a month")
 plt.show()
+
+# Top Requested Content Graph
+requests_split = data_frame["request"].str.split(expand=True)
+contents = requests_split[1]
+days_floor = time_stamp_column.dt.floor('D')
+
+combined = pd.DataFrame({"day": days_floor, "path": contents})
+
+all_counts = contents.value_counts()
+requests = all_counts.index
+requests = requests[:5]
+
+filteration = combined[combined["path"].isin(requests)]
+
+day_path = filteration.groupby(["day", "path"]).size()
+
+df_unstack = day_path.unstack()
+print(df_unstack)
+
+df_unstack.plot(kind="line")
+plt.legend()
+plt.xlabel("Dates")
+plt.ylabel("Amount of Requests")
+plt.title("Most Requested items")
+plt.show()
