@@ -43,7 +43,6 @@ for line in fileinput.input(files = log_path):
 db.commit()
 
 df = pd.read_sql_query("SELECT * FROM logs", db)
-print(df.shape)
 
 # Timestamp Graphs
 # Time Format: DD/MMM/YYYY:HH:MM:SS
@@ -73,13 +72,13 @@ requests_split = df["request"].str.split(expand=True)
 contents = requests_split[1]
 days_floor = time_stamp_column.dt.floor('D')
 
-combined = pd.DataFrame({"day": days_floor, "path": contents})
+combined_df = pd.DataFrame({"day": days_floor, "path": contents})
 
 all_counts = contents.value_counts()
 requests = all_counts.index
 requests = requests[:5]
 
-filteration = combined[combined["path"].isin(requests)]
+filteration = combined_df[combined_df["path"].isin(requests)]
 
 day_path = filteration.groupby(["day", "path"]).size()
 
@@ -93,10 +92,26 @@ plt.title("Most Requested items")
 plt.show()
 
 # Status Code Graphs
+# Status Code Breakdown Graph
 df["reply_code"] = df["reply_code"].astype(str)
 first_dig = df["reply_code"].str[0]
-first_dig += "xx"
-first_counts = first_dig.value_counts()
+fxx = first_dig + "xx"
+first_counts = fxx.value_counts()
 first_counts.plot(kind="pie")
 plt.title("All status codes as pie chart")
+plt.show()
+
+# Status Code Error Graph
+error_df = pd.DataFrame({"error_path": contents, "error_code": first_dig})
+code_filtered = error_df[error_df["error_code"].isin(['4', '5'])]
+error_path_counts = code_filtered["error_path"].value_counts()
+
+top_five = error_path_counts.index
+top_five = top_five[:5]
+
+error_path_counts.head(5).plot(kind="bar")
+plt.legend()
+plt.xlabel("Error Requests")
+plt.ylabel("Amount of Errors")
+plt.title("Error Graph")
 plt.show()
