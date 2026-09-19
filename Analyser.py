@@ -12,6 +12,7 @@ db_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\LogData.db"
 db = sqlite3.connect(db_path)
 db_cursor = db.cursor()
 db_cursor.execute('CREATE TABLE IF NOT EXISTS logs (host TEXT, timestamp TEXT, request TEXT, reply_code TEXT, reply_bytes TEXT)')
+db_cursor.execute('DELETE FROM logs')
 
 for line in fileinput.input(files = log_path):
     try:
@@ -41,12 +42,13 @@ for line in fileinput.input(files = log_path):
 
 db.commit()
 
-data_frame = pd.read_sql_query("SELECT * FROM logs", db)
+df = pd.read_sql_query("SELECT * FROM logs", db)
+print(df.shape)
 
 # Timestamp Graphs
 # Time Format: DD/MMM/YYYY:HH:MM:SS
 format = "%d/%b/%Y:%H:%M:%S %z"
-time_stamp_column = pd.to_datetime(data_frame["timestamp"], format=format)
+time_stamp_column = pd.to_datetime(df["timestamp"], format=format)
 
 # Graph 1
 hours = time_stamp_column.dt.hour
@@ -67,7 +69,7 @@ plt.title("Requests in a month")
 plt.show()
 
 # Top Requested Content Graph
-requests_split = data_frame["request"].str.split(expand=True)
+requests_split = df["request"].str.split(expand=True)
 contents = requests_split[1]
 days_floor = time_stamp_column.dt.floor('D')
 
@@ -82,11 +84,19 @@ filteration = combined[combined["path"].isin(requests)]
 day_path = filteration.groupby(["day", "path"]).size()
 
 df_unstack = day_path.unstack()
-print(df_unstack)
 
 df_unstack.plot(kind="line")
 plt.legend()
 plt.xlabel("Dates")
 plt.ylabel("Amount of Requests")
 plt.title("Most Requested items")
+plt.show()
+
+# Status Code Graphs
+df["reply_code"] = df["reply_code"].astype(str)
+first_dig = df["reply_code"].str[0]
+first_dig += "xx"
+first_counts = first_dig.value_counts()
+first_counts.plot(kind="pie")
+plt.title("All status codes as pie chart")
 plt.show()
