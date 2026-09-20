@@ -49,7 +49,7 @@ df = pd.read_sql_query("SELECT * FROM logs", db)
 format = "%d/%b/%Y:%H:%M:%S %z"
 time_stamp_column = pd.to_datetime(df["timestamp"], format=format)
 
-# Graph 1
+# Requests per hour Graph
 hours = time_stamp_column.dt.hour
 hours_group  = hours.groupby(hours)
 hours_group.size().plot(kind="bar")
@@ -58,10 +58,10 @@ plt.ylabel("Requests")
 plt.title("Requests per hour")
 plt.show()
 
-# Graph 2
+# Requests in a month Graph
 hourly_buckets = time_stamp_column.dt.floor('h')
 hourly_buckets_group = hourly_buckets.groupby(hourly_buckets)
-hourly_buckets_group.size().plot(kind="line")
+hourly_size = hourly_buckets_group.size().plot(kind="line")
 plt.xlabel("Month")
 plt.ylabel("Requests")
 plt.title("Requests in a month")
@@ -101,8 +101,8 @@ first_counts.plot(kind="pie")
 plt.title("All status codes as pie chart")
 plt.show()
 
-# Status Code Error Graph
-error_df = pd.DataFrame({"error_path": contents, "error_code": first_dig})
+# Top 5 Errors Graph
+error_df = pd.DataFrame({"error_path": contents, "error_code": first_dig, "error_day": days_floor})
 code_filtered = error_df[error_df["error_code"].isin(['4', '5'])]
 error_path_counts = code_filtered["error_path"].value_counts()
 
@@ -110,8 +110,17 @@ top_five = error_path_counts.index
 top_five = top_five[:5]
 
 error_path_counts.head(5).plot(kind="bar")
-plt.legend()
 plt.xlabel("Error Requests")
 plt.ylabel("Amount of Errors")
-plt.title("Error Graph")
+plt.title("Top 5 Errors Graph")
+plt.show()
+
+# Errors Over Time Graph
+day_error = code_filtered.groupby(["error_day", "error_code"]).size()
+de_df_unstack = day_error.unstack()
+ 
+de_df_unstack.plot(kind="line")
+plt.xlabel("Dates")
+plt.ylabel("Errors")
+plt.title("Errors over time")
 plt.show()
