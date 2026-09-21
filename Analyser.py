@@ -1,8 +1,9 @@
 import fileinput
-import sqlite3
 import re
-import pandas as pd
+import sqlite3
+
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # Get Log Path
 log_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\NASA_access_log_Aug95"
@@ -14,7 +15,8 @@ db_cursor = db.cursor()
 db_cursor.execute('CREATE TABLE IF NOT EXISTS logs (host TEXT, timestamp TEXT, request TEXT, reply_code TEXT, reply_bytes TEXT)')
 db_cursor.execute('DELETE FROM logs')
 
-for line in fileinput.input(files = log_path):
+# Regexing to break the request up
+for line in fileinput.input(files = log_path):  # noqa: SIM115
     try:
         host = re.match(r"(\S+)", line)
         host = host.group(1)
@@ -36,7 +38,7 @@ for line in fileinput.input(files = log_path):
         # Add Everything to table
         db_cursor.execute("INSERT INTO logs VALUES (?, ?, ?, ?, ?)", regexed_line)
 
-    except:
+    except:  # noqa: E722
         print(fileinput.lineno())
         break
 
@@ -124,3 +126,15 @@ plt.xlabel("Dates")
 plt.ylabel("Errors")
 plt.title("Errors over time")
 plt.show()
+
+# Possible Outage Scanner
+hourly_counts = hourly_buckets_group.size()
+hourly_df = hourly_counts.reset_index(name="count")
+outage_df = pd.DataFrame({"hour": hourly_counts.index.hour, "values": hourly_counts.values, "outage_ts": hourly_df["timestamp"]})
+hour = outage_df.groupby("hour")["values"]
+hourly_mean = hour.mean()
+threshold = hourly_mean / 2
+outage_df["threshold"] = outage_df["hour"].map(threshold)
+outage_df["is_outage"] = outage_df["values"] < outage_df["threshold"]
+outages = outage_df[outage_df["is_outage"]]
+print("Possible outages at:\n" + outages["outage_ts"])
