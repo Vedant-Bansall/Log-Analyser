@@ -1,3 +1,4 @@
+import argparse
 import fileinput
 import re
 import sqlite3
@@ -5,8 +6,13 @@ import sqlite3
 import matplotlib.pyplot as plt
 import pandas as pd
 
+# Argparsing
+parser = argparse.ArgumentParser(description="A simple log scanner using python!")
+parser.add_argument("--log", "-l", help="Run the log analyser with requested log", default=r"C:\Users\Vedant\PythonProjects\LogAnalyser\NASA_access_log_Aug95")
+args = parser.parse_args()
+
 # Get Log Path
-log_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\NASA_access_log_Aug95"
+log_path = args.log
 
 # SQL Database
 db_path = r"C:\Users\Vedant\PythonProjects\LogAnalyser\LogData.db"
@@ -137,4 +143,4 @@ threshold = hourly_mean / 2
 outage_df["threshold"] = outage_df["hour"].map(threshold)
 outage_df["is_outage"] = outage_df["values"] < outage_df["threshold"]
 outages = outage_df[outage_df["is_outage"]]
-print("Possible outages at:\n" + outages["outage_ts"])
+print("Possible outages at:\n", outages["outage_ts"])
